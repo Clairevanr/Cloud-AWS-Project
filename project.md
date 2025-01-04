@@ -25,4 +25,9 @@ The solution must use the least amount of Cloud storage resources possible
 
 The Worker must process as soon as possible new IoT traffic files
 
-## Description of the work
+### Description of the work
+
+We created under the fr.emse package the following packages : 
+- Client: it hosts the s3ListBucket class, the Upload_Client and the Output_Client dedicated to upload files on a s3 Bucket 
+- SummarizeWorker : it hosts the java application and the code for the lambda function to summarize data fromm the data.csv files 
+- ConsolidatorWorker : it hosts the java application and the code for the lambda function to compute statistics from the summarized data files Briefly, the data files are able to be uploaded in a bucket thanks to the Upload_Client, which trigger a message in the sqs queue. The summarize worker allows to parse the messages from the queue and summarize data from the related files added to the bucket and stock the summarized csv files locally. Then, the Consolidator worker retrieve the summarized file locally and process them, to stock locally the final csv file. Ultimately, the Output_client allows to upload the parsed file in the bucket. Either the Workers appear as lambda functions with triggers, or they appear as a java app
