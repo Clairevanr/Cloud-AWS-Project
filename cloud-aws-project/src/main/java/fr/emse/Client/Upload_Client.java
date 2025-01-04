@@ -68,7 +68,7 @@ public class Upload_Client {
     }
 
 
-    private static void uploadFileToS3(S3Client s3, String bucketName, String filePath) {
+    public static void uploadFileToS3(S3Client s3, String bucketName, String filePath) {
         try {
             // Create the PutObjectRequest
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
