@@ -16,20 +16,19 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
+import static fr.emse.Characteristics.*;
+
 
 
 public class Summarize {
 
     public static void main(String[] args) {
-
-        
-        Region region = Region.US_EAST_1;
-
-        String queueURL = "https://sqs.us-east-1.amazonaws.com/330112968061/messaging-app-queue";
-        SqsClient sqsClient = SqsClient.builder().region(region).build();
+    
+        SqsClient sqsClient = SqsClient.builder().region(REGION).build();
 
 
-        processMessage(queueURL,sqsClient);
+        processMessage(QUEUE_URL,sqsClient);
+        sqsClient.close();
     
 
     }

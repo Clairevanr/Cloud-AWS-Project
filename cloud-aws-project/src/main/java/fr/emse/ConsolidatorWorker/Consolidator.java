@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static fr.emse.Characteristics.SUMMARY_FILE_PATH;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -18,14 +21,12 @@ public class Consolidator {
 
     public static void main(String[] args) throws IOException {
         
-        String filePath = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data/summaries/summary.csv";
-        
-
         
 
           // Open the summary file and read data
-          try (BufferedReader summarizedReader = Files.newBufferedReader(Path.of(filePath))) {
+          try (BufferedReader summarizedReader = Files.newBufferedReader(SUMMARY_FILE_PATH)) {
             consolidateCSVData(summarizedReader);
+            Files.delete(SUMMARY_FILE_PATH);
         } catch (IOException e) {
             System.out.println("Error reading the file: " + e.getMessage());
         }

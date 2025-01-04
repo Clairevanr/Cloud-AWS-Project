@@ -1,15 +1,14 @@
 package fr.emse.Client;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import static fr.emse.Characteristics.*;
 
 
 public class Upload_Client {
@@ -17,34 +16,32 @@ public class Upload_Client {
     public static void main(String[] args) {
 
         
-        String queueURL = "https://sqs.us-east-1.amazonaws.com/330112968061/messaging-app-queue";
-        String bucket_name = "myprojectbucket355552555";
-        String path = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data";
+    
+    
+       
         String fileName = "data-20221106.csv";
 
 
+        S3Client s3 = S3Client.builder().region(REGION).build();
 
-        Region region = Region.US_EAST_1;
-        S3Client s3 = S3Client.builder().region(region).build();
-
-        SqsClient sqs = SqsClient.builder().region(region).build();
+        SqsClient sqs = SqsClient.builder().region(REGION).build();
 
 
         //Check if the bucket exists:
-        if (DoesExist(s3,bucket_name)){
-            System.out.println("Bucket '" + bucket_name + "' already exists.");
+        if (DoesExist(s3,BUCKET_NAME)){
+            System.out.println("Bucket '" + BUCKET_NAME + "' already exists.");
         }
         // if no, create the bucket
         else{
             CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
-                .bucket(bucket_name)
+                .bucket(BUCKET_NAME)
                 .build();
             s3.createBucket(createBucketRequest);
-            System.out.println("Bucket '" + bucket_name + "' has been created.");
+            System.out.println("Bucket '" + BUCKET_NAME + "' has been created.");
         }
 
-        uploadFileToS3(s3, bucket_name, path + File.separator + fileName);
-        sendMessageToSqs(sqs, queueURL, bucket_name, fileName);
+        uploadFileToS3(s3, BUCKET_NAME, DATA_REPOSITORY + File.separator + fileName);
+        sendMessageToSqs(sqs, QUEUE_URL, BUCKET_NAME, fileName);
 
          // Close the S3 client after use
          s3.close();

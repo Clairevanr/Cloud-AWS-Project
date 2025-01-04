@@ -1,23 +1,27 @@
 package fr.emse.Client;
 
 
-import software.amazon.awssdk.regions.Region;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import software.amazon.awssdk.services.s3.S3Client;
+import static fr.emse.Characteristics.*;
 
 public class Output_Client {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        Region region = Region.US_EAST_1;
-        S3Client s3 = S3Client.builder().region(region).build();
-        String bucket_name = "myprojectbucket355552555";
-        String outputPath =  "/home/clairevanruymbeke/Cloud-AWS-Final-project/data/traffic_stats/stats.csv";
+    
+        S3Client s3 = S3Client.builder().region(REGION).build();
+        
+        
 
-        if (Upload_Client.DoesExist(s3, bucket_name)){
-            Upload_Client.uploadFileToS3(s3, bucket_name, outputPath);
+        if (Upload_Client.DoesExist(s3, BUCKET_NAME)){
+            Upload_Client.uploadFileToS3(s3, BUCKET_NAME, OUTPUT_FILE_PATH.toString());
         }
 
         s3.close();
+        Files.delete(OUTPUT_FILE_PATH);
         
 
     }
