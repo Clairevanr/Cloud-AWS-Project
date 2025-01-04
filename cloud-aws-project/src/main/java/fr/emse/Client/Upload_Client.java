@@ -19,7 +19,7 @@ public class Upload_Client {
         
         String queueURL = "https://sqs.us-east-1.amazonaws.com/330112968061/messaging-app-queue";
         String bucket_name = "myprojectbucket355552555";
-        String path = Path.of("/home/clairevanruymbeke/Cloud-AWS-Final-project/data").toString();
+        String path = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data";
         String fileName = "data-20221106.csv";
 
 

@@ -3,7 +3,6 @@ package fr.emse.SummarizeWorker;
 import java.io.*;
 import java.util.*;
 
-import fr.emse.Client.Upload_Client;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -111,7 +110,7 @@ public class Summarize {
 
             // Write the summary to CSV
             String outputFilePath = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data/summaries/summary.csv";
-            writeSummaryToCsv(outputFilePath, trafficSummaryMap, bucketName,s3Client);
+            writeSummaryToCsv(outputFilePath, trafficSummaryMap);
 
 
         } catch (IOException e) {
@@ -143,7 +142,7 @@ public class Summarize {
     }
 
 
-    private static void writeSummaryToCsv(String outputFilePath, Map<String, long[]> trafficSummaryMap,String bucket_name, S3Client s3) {
+    private static void writeSummaryToCsv(String outputFilePath, Map<String, long[]> trafficSummaryMap) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
             writer.write("Date,Src IP,Dst IP,Total Flow Duration,Total Forward Packets\n");
             for (Map.Entry<String, long[]> entry : trafficSummaryMap.entrySet()) {
@@ -152,9 +151,7 @@ public class Summarize {
                 writer.write(String.join(",", keyParts[0], keyParts[1], keyParts[2],
                         String.valueOf(metrics[0]), String.valueOf(metrics[1])) + "\n");
             }
-            //upload the summary file to s3 thanks to the methods from Upload_Client
-            Upload_Client.DoesExist(s3, bucket_name);
-            Upload_Client.uploadFileToS3(s3, bucket_name, outputFilePath);
+        
 
         } catch (IOException e) {
             System.err.println("Error writing summary CSV: " + e.getMessage());

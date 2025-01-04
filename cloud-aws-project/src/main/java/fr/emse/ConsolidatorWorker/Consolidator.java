@@ -4,51 +4,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import software.amazon.awssdk.core.ResponseInputStream;
 
 
 
 public class Consolidator {
 
     public static void main(String[] args) throws IOException {
-        Region region = Region.US_EAST_1;
-        String fileName = "summary.csv";
-        String bucketName = "myprojectbucket355552555";
+        
+        String filePath = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data/summaries/summary.csv";
+        
 
-        S3Client s3 = S3Client.builder().region(region).build();
+        
 
-        // Check if the file exists
-        ListObjectsRequest listObjects = ListObjectsRequest.builder().bucket(bucketName).build();
-        ListObjectsResponse res = s3.listObjects(listObjects);
-        List<S3Object> objects = res.contents();
-
-        if (objects.stream().anyMatch((S3Object x) -> x.key().equals(fileName))) {
-            GetObjectRequest objRequest = GetObjectRequest.builder().key(fileName).bucket(bucketName).build();
-            ResponseInputStream<GetObjectResponse> oldData = s3.getObject(objRequest);
-            BufferedReader summarizedReader = new BufferedReader(new InputStreamReader(oldData));
-
+          // Open the summary file and read data
+          try (BufferedReader summarizedReader = Files.newBufferedReader(Path.of(filePath))) {
             consolidateCSVData(summarizedReader);
-        } else {
-            System.out.println("The file doesn't exist");
+        } catch (IOException e) {
+            System.out.println("Error reading the file: " + e.getMessage());
         }
+    
     }
 
     private static void consolidateCSVData(BufferedReader summarizedReader) throws IOException {
@@ -59,12 +40,12 @@ public class Consolidator {
         // Skip the header line
         String line = summarizedReader.readLine(); // Read and ignore the header
 
-        // Read the file
+        // Read the file line by line
         while ((line = summarizedReader.readLine()) != null) {
             String[] fields = line.split(",");
-            if (fields.length < 5){
+            if (fields.length < 5) continue;
 
-            
+            try {
                 String srcIP = fields[1];
                 String dstIP = fields[2];
                 long flowDuration = Long.parseLong(fields[3]); // Total Flow Duration
@@ -81,8 +62,10 @@ public class Consolidator {
                     .computeIfAbsent(dstIP, k -> new ArrayList<>())
                     .add(forwardPackets);
 
-            }        
-            
+            } catch (NumberFormatException e) {
+                // Handle invalid number format (skip the line or log the error)
+                System.out.println("Skipping invalid line: " + line);
+            }
         }
 
         // Calculate stats (average, std dev) for both flow duration and forward packets
@@ -96,17 +79,19 @@ public class Consolidator {
         return Math.sqrt(variance);
     }
 
-    // Write the statistics to a csv file
+    // Method to write the statistics to a CSV file
     private static void writeTrafficStatsToCSV(Map<String, Map<String, List<Long>>> trafficDataFlowDuration,
                                                Map<String, Map<String, List<Integer>>> trafficDataForwardPackets) throws IOException {
 
         // Define the output file path
         Path outputPath = Path.of("data/traffic_stats/stats.csv");
 
+        // Create the directory if it doesn't exist
+        Files.createDirectories(outputPath.getParent());
 
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
             // Write the header row
-            writer.write("Src IP,Dst IP,Avg Flow Duration,Avg Forward Packets,Std Dev Flow Duration,Std Dev Forward Packets\n");
+            writer.write("Src IP,Dst IP,Total Flow Duration,Total Forward Packets,Avg Flow Duration,Avg Forward Packets,Std Dev Flow Duration,Std Dev Forward Packets\n");
 
             // Loop through the traffic data to calculate and write stats for each Src IP -> Dst IP combination
             for (String srcIP : trafficDataFlowDuration.keySet()) {
@@ -122,9 +107,14 @@ public class Consolidator {
                     double stdDevFlowDuration = calculateStandardDeviation(flowDurations);
                     double stdDevForwardPackets = calculateStandardDeviation(forwardPackets);
 
+                    // Get the total values (use the sum of the lists as totals)
+                    long totalFlowDuration = flowDurations.stream().mapToLong(Long::longValue).sum();
+                    int totalForwardPackets = forwardPackets.stream().mapToInt(Integer::intValue).sum();
+
                     // Write the results to the CSV file
-                    writer.write(String.format("%s,%s,%.2f,%.2f,%.2f,%.2f\n", 
-                            srcIP, dstIP, avgFlowDuration, avgForwardPackets, stdDevFlowDuration, stdDevForwardPackets));
+                    writer.write(String.format("%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f\n", 
+                            srcIP, dstIP, totalFlowDuration, totalForwardPackets,
+                            avgFlowDuration, avgForwardPackets, stdDevFlowDuration, stdDevForwardPackets));
                 }
             }
         }
