@@ -3,9 +3,11 @@ package fr.emse.SummarizeWorker;
 import java.io.*;
 import java.util.*;
 
+import fr.emse.Client.Upload_Client;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -15,6 +17,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+
 
 import static fr.emse.Characteristics.*;
 
@@ -27,7 +30,7 @@ public class Summarize {
         SqsClient sqsClient = SqsClient.builder().region(REGION).build();
 
 
-        processMessage(QUEUE_URL,sqsClient);
+        processMessage(SQS_SUMMARIZE,sqsClient);
         sqsClient.close();
     
 
@@ -37,8 +40,8 @@ public class Summarize {
 
     private static void processMessage(String queueURL, SqsClient sqsClient){
 
-        Region region = Region.US_EAST_1;
-		String bucketName = "myprojectbucket355552555";
+        
+		
 
         // Reception of the queue's messages
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder().queueUrl(queueURL).maxNumberOfMessages(10).build();
@@ -47,10 +50,10 @@ public class Summarize {
          
 
         if (!messages.isEmpty()) {
-			S3Client s3 = S3Client.builder().region(region).build();
+			S3Client s3 = S3Client.builder().region(REGION).build();
 
 
-            ListObjectsRequest listObjects = ListObjectsRequest.builder().bucket(bucketName).build();
+            ListObjectsRequest listObjects = ListObjectsRequest.builder().bucket(SOURCE_BUCKET).build();
 			
 			ListObjectsResponse res = s3.listObjects(listObjects);
 			List<S3Object> objects = res.contents();	
@@ -63,7 +66,7 @@ public class Summarize {
 				if (objects.stream().anyMatch((S3Object x) -> x.key().equals(fileName))) {
                     
                     // To retrieve the file and process it
-                    processFileFromS3(s3, bucketName, fileName);
+                    processFileFromS3(s3,sqsClient, SOURCE_BUCKET, fileName);
 
 					
 					
@@ -86,7 +89,7 @@ public class Summarize {
 	}
 
 
-    private static void processFileFromS3(S3Client s3Client, String bucketName, String fileName) {
+    private static void processFileFromS3(S3Client s3Client, SqsClient sqsClient, String bucketName, String fileName) {
         try {
             GetObjectRequest objectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
@@ -107,9 +110,29 @@ public class Summarize {
             }
 
 
-            // Write the summary to CSV
-            String outputFilePath = "/home/clairevanruymbeke/Cloud-AWS-Final-project/data/summaries/summary.csv";
-            writeSummaryToCsv(outputFilePath, trafficSummaryMap);
+            
+            writeSummaryToCsv(SUMMARY_FILE_PATH.toString(), trafficSummaryMap);
+               
+            //Check if the bucket exists:
+            if (Upload_Client.DoesExist(s3Client,TEMP_BUCKET)){
+                System.out.println("Bucket '" + TEMP_BUCKET + "' already exists.");
+            }
+            // if no, create the bucket
+            else{
+                CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
+                    .bucket(TEMP_BUCKET)
+                    .build();
+                s3Client.createBucket(createBucketRequest);
+                System.out.println("Bucket '" + TEMP_BUCKET + "' has been created.");
+            }
+
+            Upload_Client.uploadFileToS3(s3Client, SOURCE_BUCKET, DATA_REPOSITORY + File.separator + FILENAME);
+            Upload_Client.sendMessageToSqs(sqsClient, SQS_CONSOLIDATOR, SOURCE_BUCKET, FILENAME);
+
+         // Close the S3 client after use
+         s3Client.close();
+         sqsClient.close();
+
 
 
         } catch (IOException e) {

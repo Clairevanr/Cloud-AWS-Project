@@ -19,7 +19,7 @@ public class Upload_Client {
     
     
        
-        String fileName = "data-20221106.csv";
+        
 
 
         S3Client s3 = S3Client.builder().region(REGION).build();
@@ -28,20 +28,20 @@ public class Upload_Client {
 
 
         //Check if the bucket exists:
-        if (DoesExist(s3,BUCKET_NAME)){
-            System.out.println("Bucket '" + BUCKET_NAME + "' already exists.");
+        if (DoesExist(s3,SOURCE_BUCKET)){
+            System.out.println("Bucket '" + SOURCE_BUCKET + "' already exists.");
         }
         // if no, create the bucket
         else{
             CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
-                .bucket(BUCKET_NAME)
+                .bucket(SOURCE_BUCKET)
                 .build();
             s3.createBucket(createBucketRequest);
-            System.out.println("Bucket '" + BUCKET_NAME + "' has been created.");
+            System.out.println("Bucket '" + SOURCE_BUCKET + "' has been created.");
         }
 
-        uploadFileToS3(s3, BUCKET_NAME, DATA_REPOSITORY + File.separator + fileName);
-        sendMessageToSqs(sqs, QUEUE_URL, BUCKET_NAME, fileName);
+        uploadFileToS3(s3, SOURCE_BUCKET, DATA_REPOSITORY + File.separator + FILENAME);
+        sendMessageToSqs(sqs, SQS_SUMMARIZE, SOURCE_BUCKET, FILENAME);
 
          // Close the S3 client after use
          s3.close();
@@ -81,7 +81,7 @@ public class Upload_Client {
         }
     }
 
-     private static void sendMessageToSqs(SqsClient sqs, String queueURL, String bucketName, String fileName) {
+     public static void sendMessageToSqs(SqsClient sqs, String queueURL, String bucketName, String fileName) {
         try {
             String messageBody = "File uploaded: " + fileName + " in bucket: " + bucketName;
 

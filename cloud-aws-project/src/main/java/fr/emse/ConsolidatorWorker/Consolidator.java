@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.emse.Characteristics.OUTPUT_FILE_PATH;
 import static fr.emse.Characteristics.SUMMARY_FILE_PATH;
 
 import java.io.BufferedReader;
@@ -12,7 +13,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 
 
@@ -84,13 +84,12 @@ public class Consolidator {
     private static void writeTrafficStatsToCSV(Map<String, Map<String, List<Long>>> trafficDataFlowDuration,
                                                Map<String, Map<String, List<Integer>>> trafficDataForwardPackets) throws IOException {
 
-        // Define the output file path
-        Path outputPath = Path.of("data/traffic_stats/stats.csv");
+        
 
         // Create the directory if it doesn't exist
-        Files.createDirectories(outputPath.getParent());
+        Files.createDirectories(OUTPUT_FILE_PATH.getParent());
 
-        try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(OUTPUT_FILE_PATH)) {
             // Write the header row
             writer.write("Src IP,Dst IP,Total Flow Duration,Total Forward Packets,Avg Flow Duration,Avg Forward Packets,Std Dev Flow Duration,Std Dev Forward Packets\n");
 
