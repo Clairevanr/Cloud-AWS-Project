@@ -37,9 +37,21 @@ To be launched in a EC2 instance,
  
 Briefly, the data files are able to be uploaded in a Source Bucket thanks to the Upload_Client, which trigger a message in the sqs queue SQS_Summarize.
 The summarize worker allows to parse the messages from the queue and summarize data from the related files added to the bucket and stock the summarized csv files locally. Then, it uploads it in the TEMP bucket and sends a message to the queue SQS_CONSOLIDATOR before deleting the local csv file.
-Then, the Consolidator worker retrieve the summarized file from the SQS_CONSOLIDATOR message and process them, to stock locally the final csv files. Ultimately, it uploads the parsed file in the Final Bucket
+Then, the Consolidator worker retrieve the summarized file from the SQS_CONSOLIDATOR message and process them, to stock locally the final csv files. Ultimately, it uploads the parsed file in the Final Bucket.
+
+We didn't succeed in launching it in an EC2 instance (probably because of the directories it works with locally, if we had time left we would have done the same with temp repositories as we did in Lambda functions). But it can be launched locally by running successively :
+
+- Upload_Client
+- SummarizeWorker
+- ConsolidatorWorker
+
+With the same effects as the lambda function. 
+Without it working, we couldn't compare the performances of each systems.
 
 
 - WorkersLambda : 
 
-The SummarizeLambda and 
+The SummarizeLambda and ConsolidatorLambda are to be implemented in Lambda functions with the JAR. We must use the SQS_SUMMARIZE to trigger SummarizeLambda, whith SQS_CONSOLIDATOR as a destination. SQS_CONSOLIDATOR will then trigger the Lambda function related to ConsolidatorLambda. 
+Which will basically do the same.
+
+The Export client is integrated in the ConsolidatorWorker.
