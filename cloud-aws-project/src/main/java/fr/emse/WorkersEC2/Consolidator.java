@@ -75,14 +75,17 @@ public class Consolidator {
                         } catch (IOException e) {
                             System.out.println("Error reading the file: " + e.getMessage());
                         }
+
+                        // Delete the file from the temp bucket
+                        Upload_Client.deleteFileFromS3(s3Client, TEMP_BUCKET, fileName);
                         
 
                         //Check if the bucket exists:
                         Upload_Client.DoesExist(s3Client,FINAL_BUCKET);
                         // Upload the file to the final bucket
-                        Upload_Client.uploadFileToS3(s3Client, FINAL_BUCKET, "data/stats/stats.csv");
-                        // Delete the file from the temp bucket
-                        Upload_Client.deleteFileFromS3(s3Client, TEMP_BUCKET, fileName);
+                        Upload_Client.uploadFileToS3(s3Client, FINAL_BUCKET, OUTPUT_FILE_PATH.toString());
+                        //Delete the file from the local path
+                        Files.delete(OUTPUT_FILE_PATH);
                         
 
                         

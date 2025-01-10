@@ -32,7 +32,10 @@ public class SummarizeLambda implements RequestHandler<SQSEvent, Object>{
     @Override
     public SQSBatchResponse handleRequest(SQSEvent sqsEvent, Context context) {
 	 	for(SQSMessage msg : sqsEvent.getRecords()){
+            System.out.println("Msg " + msg.getBody());
             String fileName = msg.getBody().substring(msg.getBody().indexOf(":") + 2, msg.getBody().indexOf(" in bucket:")).trim();
+
+            System.out.println("Filename " + fileName);
             processMessage(fileName, msg);
         }
         return null;
@@ -53,7 +56,7 @@ public class SummarizeLambda implements RequestHandler<SQSEvent, Object>{
 
             GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(SOURCE_BUCKET)
-                .key(FILENAME)
+                .key(fileName)
                 .build();
 
             // Retrieve the file from s3 bucket

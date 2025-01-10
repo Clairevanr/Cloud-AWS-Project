@@ -23,6 +23,6 @@ public class Characteristics {
 
     // Fichier à upload 
 
-    public static final String FILENAME = "data-20221106.csv";
+    public static final String FILENAME = "data-20221202.csv";
     
 }

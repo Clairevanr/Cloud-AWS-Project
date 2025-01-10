@@ -79,7 +79,7 @@ public class Summarize {
                         //Check if the bucket exists:
                         Upload_Client.DoesExist(s3Client,TEMP_BUCKET);
                         // Upload the file to the temp bucket
-                        Upload_Client.uploadFileToS3(s3Client, TEMP_BUCKET, "data/summaries/summary.csv");
+                        Upload_Client.uploadFileToS3(s3Client, TEMP_BUCKET, OUTPUT_FILE_PATH.toString());
                         // Delete the file from the source bucket
                         Upload_Client.deleteFileFromS3(s3Client, SOURCE_BUCKET, fileName);
 
