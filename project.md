@@ -36,6 +36,9 @@ To be launched in a EC2 instance,
  it hosts the java application to compute statistics from the summarized data files in the ConsolidatorWorker class.
  
 Briefly, the data files are able to be uploaded in a Source Bucket thanks to the Upload_Client, which trigger a message in the sqs queue SQS_Summarize.
+We chose to use s3 buckets to stock our csv files at each step because stocking everything on the cloud allowed us to rely entierely on triggers for the lambda functions and we experimented that working in local repositories was not really efficient when it came to AWS Lambda.
+We chose to use SQS queues to custom the message with the file name and the bucket name to automate the processes to work with most of cases. They also acted as triggers and destinations for the lambda functions, instead of using the buckets which are less reliable as triggers in these cases.
+
 The summarize worker allows to parse the messages from the queue and summarize data from the related files added to the bucket and stock the summarized csv files locally. Then, it uploads it in the TEMP bucket and sends a message to the queue SQS_CONSOLIDATOR before deleting the local csv file.
 Then, the Consolidator worker retrieve the summarized file from the SQS_CONSOLIDATOR message and process them, to stock locally the final csv files. Ultimately, it uploads the parsed file in the Final Bucket.
 
