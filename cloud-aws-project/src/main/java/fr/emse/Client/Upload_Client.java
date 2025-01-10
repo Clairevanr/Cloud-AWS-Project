@@ -15,35 +15,17 @@ public class Upload_Client {
 
     public static void main(String[] args) {
 
-        
-    
-    
-       
-        
-
 
         S3Client s3 = S3Client.builder().region(REGION).build();
 
         SqsClient sqs = SqsClient.builder().region(REGION).build();
 
 
-        //Check if the bucket exists:
-        if (DoesExist(s3,SOURCE_BUCKET)){
-            System.out.println("Bucket '" + SOURCE_BUCKET + "' already exists.");
-        }
-        // if no, create the bucket
-        else{
-            CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
-                .bucket(SOURCE_BUCKET)
-                .build();
-            s3.createBucket(createBucketRequest);
-            System.out.println("Bucket '" + SOURCE_BUCKET + "' has been created.");
-        }
-
+        DoesExist(s3, SOURCE_BUCKET);
         uploadFileToS3(s3, SOURCE_BUCKET, DATA_REPOSITORY + File.separator + FILENAME);
         sendMessageToSqs(sqs, SQS_SUMMARIZE, SOURCE_BUCKET, FILENAME);
 
-         // Close the S3 client after use
+        
          s3.close();
 
     }
@@ -56,15 +38,23 @@ public class Upload_Client {
 
         for (Bucket bucket : listBucketResponse.buckets()){
             if (bucket.name().equals(bucketName)){
+                System.out.println("Bucket '" + SOURCE_BUCKET + "' already exists.");
                 return true;
             }
 
         }
+        CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
+                .bucket(SOURCE_BUCKET)
+                .build();
+            s3.createBucket(createBucketRequest);
+            System.out.println("Bucket '" + SOURCE_BUCKET + "' has been created.");
         return false;
         
     }
 
 
+
+    // Function defined to upload a file in the bucket
     public static void uploadFileToS3(S3Client s3, String bucketName, String filePath) {
         try {
             // Create the PutObjectRequest
@@ -94,6 +84,28 @@ public class Upload_Client {
             System.out.println("Message sent to SQS queue: " + queueURL);
         } catch (Exception e) {
             System.err.println("Error sending message to SQS: " + e.getMessage());
+        }
+    }
+     
+    //Function defined to delete a file from a bucket
+    public static void deleteFileFromS3(S3Client s3Client, String bucketName, String key) {
+        try {
+            
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            
+            s3Client.deleteObject(deleteRequest);
+
+            
+            System.out.println("Fichier supprimé avec succès : " + key 
+                               + " du bucket : " + bucketName);
+        } catch (Exception e) {
+            
+            System.err.println("Erreur lors de la suppression du fichier : " + key);
+            e.printStackTrace();
         }
     }
 

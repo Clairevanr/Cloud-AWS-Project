@@ -28,6 +28,18 @@ The Worker must process as soon as possible new IoT traffic files
 ### Description of the work
 
 We created under the fr.emse package the following packages : 
-- Client: it hosts the s3ListBucket class, the Upload_Client and the Output_Client dedicated to upload files on a s3 Bucket 
-- SummarizeWorker : it hosts the java application and the code for the lambda function to summarize data fromm the data.csv files 
-- ConsolidatorWorker : it hosts the java application and the code for the lambda function to compute statistics from the summarized data files Briefly, the data files are able to be uploaded in a bucket thanks to the Upload_Client, which trigger a message in the sqs queue. The summarize worker allows to parse the messages from the queue and summarize data from the related files added to the bucket and stock the summarized csv files locally. Then, the Consolidator worker retrieve the summarized file locally and process them, to stock locally the final csv file. Ultimately, the Output_client allows to upload the parsed file in the bucket. Either the Workers appear as lambda functions with triggers, or they appear as a java app
+
+- Client: it hosts the s3ListBucket class and the Upload_Client, thanks to which we can Upload a file of our choice on a bucket of our choice and which contains the functions related to these uploads that are used elsewhere in the code.
+- WorkersEC2 : 
+To be launched in a EC2 instance,
+ it hosts the java application to summarize data fromm the data.csv files in the SummarizeWorker class.
+ it hosts the java application to compute statistics from the summarized data files in the ConsolidatorWorker class.
+ 
+Briefly, the data files are able to be uploaded in a Source Bucket thanks to the Upload_Client, which trigger a message in the sqs queue SQS_Summarize.
+The summarize worker allows to parse the messages from the queue and summarize data from the related files added to the bucket and stock the summarized csv files locally. Then, it uploads it in the TEMP bucket and sends a message to the queue SQS_CONSOLIDATOR before deleting the local csv file.
+Then, the Consolidator worker retrieve the summarized file from the SQS_CONSOLIDATOR message and process them, to stock locally the final csv files. Ultimately, it uploads the parsed file in the Final Bucket
+
+
+- WorkersLambda : 
+
+The SummarizeLambda and 

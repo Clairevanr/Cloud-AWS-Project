@@ -1,6 +1,3 @@
-fr/emse/ConsolidatorWorker/Consolidator.class
-fr/emse/Client/Output_Client.class
 fr/emse/Client/s3ListBucket.class
 fr/emse/Characteristics.class
-fr/emse/SummarizeWorker/Summarize.class
 fr/emse/Client/Upload_Client.class
