@@ -10,6 +10,11 @@ If needed, create your own SQS queues (there are two) and your own three s3 Buck
 
 # How to configurate your AWS environment 
 
+
+There are already data files in the data folder. Plus, we created the summaries folder (hosting the summary.csv file that is the output of the Summarize Worker) and the stats folder (hosting the stats.csv file that it the output of the Consolidator Worker) that were useful to test our functionnalities locally.
+
+The data file we chose to do our tests with is noted in the Characteristics file and is arbitrary.
+
 ## SQS queues :
 
 You will need two SQS queues : one to trigger the lambda function Summarize when the client updates the file (SQS_SUMMARIZE) and one to trigger the lambda function Consolidator (SQS_CONSOLIDATOR).
